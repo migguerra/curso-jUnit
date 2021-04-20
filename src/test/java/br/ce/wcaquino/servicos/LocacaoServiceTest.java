@@ -32,12 +32,12 @@ public class LocacaoServiceTest {
 		Locacao locacao = service.alugarFilme(usuario, filme);
 
 		// verificacao
-		// Para o teste ser isolado deve criar 3 teste com cenario e ação para rastrear
-		// o erro
 
+		// Desta forma o teste continua a rodar mesmo apresentando falha
 		error.checkThat(locacao.getValor(), is(equalTo(6.0)));
 		error.checkThat(DataUtils.isMesmaData(locacao.getDataLocacao(), new Date()), is(true));
 		error.checkThat(DataUtils.isMesmaData(locacao.getDataRetorno(), DataUtils.obterDataComDiferencaDias(1)),
 				is(false));
+
 	}
 }
