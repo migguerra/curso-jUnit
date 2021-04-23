@@ -4,7 +4,9 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,7 +43,7 @@ public class LocacaoServiceTest {
 
 		// cenario - inicializacao das variaveis
 		Usuario usuario = new Usuario("usuario ");
-		Filme filme = new Filme("um filme", 2, 5.0);
+		List<Filme> filme = Arrays.asList(new Filme("um filme", 2, 5.0));
 
 		// acao - execucao
 		Locacao locacao = service.alugarFilme(usuario, filme);
@@ -58,17 +60,17 @@ public class LocacaoServiceTest {
 	public void TesteLocacaoFilmeSemEstoqueElegante() throws Exception {
 		// cenario - inicializacao das variaveis
 		Usuario usuario = new Usuario("usuario ");
-		Filme filme = new Filme("um filme", 0, 5.0);
+		List<Filme> filmes = Arrays.asList(new Filme("um filme", 0, 5.0));
 
 		// acao - execucao
-		service.alugarFilme(usuario, filme);
+		service.alugarFilme(usuario, filmes);
 	}
 
 	// forma que se obtem mais controle para se tratar exception
 	@Test
 	public void testeLocacaoUsuarioVazio() throws FilmeSemEstoqueException {
 		// cenario
-		Filme filme = new Filme("um filme", 1, 5.0);
+		List<Filme> filme = Arrays.asList(new Filme("um filme", 1, 5.0));
 
 		// acao
 		try {
