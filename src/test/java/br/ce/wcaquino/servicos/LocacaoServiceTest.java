@@ -7,6 +7,7 @@ import static org.junit.Assert.assertThat;
 import java.util.Date;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -21,6 +22,8 @@ import br.ce.wcaquino.utils.DataUtils;
 
 public class LocacaoServiceTest {
 
+	private LocacaoService service;
+
 	@Rule
 	// Anotacao que permite mudar o comportamento dos testes
 	public ErrorCollector error = new ErrorCollector();
@@ -28,13 +31,15 @@ public class LocacaoServiceTest {
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
 
-	// se o teste nao esta esperando exception alguma deixa o JUnit tratar
+	@Before
+	public void setup() {
+		service = new LocacaoService();
+	}
 
 	@Test
 	public void TesteLocacao() throws Exception {
 
 		// cenario - inicializacao das variaveis
-		LocacaoService service = new LocacaoService();
 		Usuario usuario = new Usuario("usuario ");
 		Filme filme = new Filme("um filme", 2, 5.0);
 
@@ -52,7 +57,6 @@ public class LocacaoServiceTest {
 	@Test(expected = FilmeSemEstoqueException.class)
 	public void TesteLocacaoFilmeSemEstoqueElegante() throws Exception {
 		// cenario - inicializacao das variaveis
-		LocacaoService service = new LocacaoService();
 		Usuario usuario = new Usuario("usuario ");
 		Filme filme = new Filme("um filme", 0, 5.0);
 
@@ -64,7 +68,6 @@ public class LocacaoServiceTest {
 	@Test
 	public void testeLocacaoUsuarioVazio() throws FilmeSemEstoqueException {
 		// cenario
-		LocacaoService service = new LocacaoService();
 		Filme filme = new Filme("um filme", 1, 5.0);
 
 		// acao
@@ -79,7 +82,6 @@ public class LocacaoServiceTest {
 	@Test
 	public void testeLocacaoFilmeVazio() throws FilmeSemEstoqueException, LocadoraException {
 		// cenario - inicializacao das variaveis
-		LocacaoService service = new LocacaoService();
 		Usuario usuario = new Usuario("usuario ");
 
 		exception.expect(LocadoraException.class);
