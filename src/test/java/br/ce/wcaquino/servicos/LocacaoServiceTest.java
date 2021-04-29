@@ -3,8 +3,10 @@ package br.ce.wcaquino.servicos;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -39,7 +41,7 @@ public class LocacaoServiceTest {
 	}
 
 	@Test
-	public void TesteLocacao() throws Exception {
+	public void deveAlugarFilme() throws Exception {
 
 		// cenario - inicializacao das variaveis
 		Usuario usuario = new Usuario("usuario ");
@@ -57,7 +59,7 @@ public class LocacaoServiceTest {
 	}
 
 	@Test(expected = FilmeSemEstoqueException.class)
-	public void TesteLocacaoFilmeSemEstoqueElegante() throws Exception {
+	public void naoDeveAlugarFilmeSemEstoque() throws Exception {
 		// cenario - inicializacao das variaveis
 		Usuario usuario = new Usuario("usuario ");
 		List<Filme> filmes = Arrays.asList(new Filme("um filme", 0, 5.0));
@@ -68,7 +70,7 @@ public class LocacaoServiceTest {
 
 	// forma que se obtem mais controle para se tratar exception
 	@Test
-	public void testeLocacaoUsuarioVazio() throws FilmeSemEstoqueException {
+	public void naoDeveAlugarFilmeSemUsuario() throws FilmeSemEstoqueException {
 		// cenario
 		List<Filme> filme = Arrays.asList(new Filme("um filme", 1, 5.0));
 
@@ -82,14 +84,85 @@ public class LocacaoServiceTest {
 	}
 
 	@Test
-	public void testeLocacaoFilmeVazio() throws FilmeSemEstoqueException, LocadoraException {
+	public void naoDeveAlugarFilmeSemFilme() throws FilmeSemEstoqueException, LocadoraException {
 		// cenario - inicializacao das variaveis
-		Usuario usuario = new Usuario("usuario ");
+		Usuario usuario = new Usuario("usuario 1");
 
 		exception.expect(LocadoraException.class);
 		exception.expectMessage("Filme vazio");
 		// acao
 		service.alugarFilme(usuario, null);
+	}
 
+	@Test
+	public void devePagar75PctNoFilme3() throws FilmeSemEstoqueException, LocadoraException {
+		// cenario - o que preciso
+		Usuario usuario = new Usuario("usuario 1");
+		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 2, 4.0), new Filme("Filme 2", 2, 4.0),
+				new Filme("Filme 3", 2, 4.0));
+
+		// acao
+		Locacao resultado = service.alugarFilme(usuario, filmes);
+
+		// verificacao
+		assertThat(resultado.getValor(), is(11.0));
+	}
+
+	@Test
+	public void devePagar50PctNoFilme4() throws FilmeSemEstoqueException, LocadoraException {
+		// cenario - o que preciso
+		Usuario usuario = new Usuario("usuario 1");
+		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 2, 4.0), new Filme("Filme 2", 2, 4.0),
+				new Filme("Filme 3", 2, 4.0), new Filme("Filme 3", 2, 4.0));
+
+		// acao
+		Locacao resultado = service.alugarFilme(usuario, filmes);
+
+		// verificacao
+		assertThat(resultado.getValor(), is(13.0));
+	}
+
+	@Test
+	public void devePagar25PctNoFilme5() throws FilmeSemEstoqueException, LocadoraException {
+		// cenario - o que preciso
+		Usuario usuario = new Usuario("usuario 1");
+		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 2, 4.0), new Filme("Filme 2", 2, 4.0),
+				new Filme("Filme 3", 2, 4.0), new Filme("Filme 3", 2, 4.0), new Filme("Filme 3", 2, 4.0));
+
+		// acao
+		Locacao resultado = service.alugarFilme(usuario, filmes);
+
+		// verificacao
+		assertThat(resultado.getValor(), is(14.0));
+	}
+
+	@Test
+	public void devePagar100PctNoFilme6() throws FilmeSemEstoqueException, LocadoraException {
+		// cenario - o que preciso
+		Usuario usuario = new Usuario("usuario 1");
+		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 2, 4.0), new Filme("Filme 2", 2, 4.0),
+				new Filme("Filme 3", 2, 4.0), new Filme("Filme 3", 2, 4.0), new Filme("Filme 3", 2, 4.0),
+				new Filme("Filme 3", 2, 4.0));
+
+		// acao
+		Locacao resultado = service.alugarFilme(usuario, filmes);
+
+		// verificacao
+		assertThat(resultado.getValor(), is(14.0));
+	}
+
+	@Test
+	public void deveDevolverNaSegundaAoAlugarNoSabado() throws FilmeSemEstoqueException, LocadoraException {
+
+		// cenario - o que preciso
+		Usuario usuario = new Usuario("usuario 1");
+		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 2, 4.0));
+
+		// acao
+		Locacao retorno = service.alugarFilme(usuario, filmes);
+
+		// verificacao
+		boolean eSegunda = DataUtils.verificarDiaSemana(retorno.getDataRetorno(), Calendar.MONDAY);
+		assertTrue(eSegunda);
 	}
 }
