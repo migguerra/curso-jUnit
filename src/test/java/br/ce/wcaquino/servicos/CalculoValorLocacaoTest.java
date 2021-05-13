@@ -13,10 +13,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
+import org.mockito.Mockito;
 
 import br.ce.wcaquino.builders.FilmeBuilder;
 import br.ce.wcaquino.daos.LocacaoDAO;
-import br.ce.wcaquino.daos.LocacaoDAOFake;
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
@@ -41,18 +41,20 @@ public class CalculoValorLocacaoTest {
 	@Before
 	public void setup() {
 		service = new LocacaoService();
-		// fake object
-		LocacaoDAO dao = new LocacaoDAOFake();
+		// mock
+		LocacaoDAO dao = Mockito.mock(LocacaoDAO.class);
 		service.setLocacaoDAO(dao);
+		SPCService spc = Mockito.mock(SPCService.class);
+		service.setSPCService(spc);
 	}
 
-	private static Filme filme1 = FilmeBuilder.umfilme().agora();
-	private static Filme filme2 = FilmeBuilder.umfilme().agora();
-	private static Filme filme3 = FilmeBuilder.umfilme().agora();
-	private static Filme filme4 = FilmeBuilder.umfilme().agora();
-	private static Filme filme5 = FilmeBuilder.umfilme().agora();
-	private static Filme filme6 = FilmeBuilder.umfilme().agora();
-	private static Filme filme7 = FilmeBuilder.umfilme().agora();
+	private static Filme filme1 = FilmeBuilder.umFilme().agora();
+	private static Filme filme2 = FilmeBuilder.umFilme().agora();
+	private static Filme filme3 = FilmeBuilder.umFilme().agora();
+	private static Filme filme4 = FilmeBuilder.umFilme().agora();
+	private static Filme filme5 = FilmeBuilder.umFilme().agora();
+	private static Filme filme6 = FilmeBuilder.umFilme().agora();
+	private static Filme filme7 = FilmeBuilder.umFilme().agora();
 
 	@Parameters(name = "{2}")
 

@@ -9,6 +9,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -21,10 +25,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 
 import br.ce.wcaquino.builders.FilmeBuilder;
+import br.ce.wcaquino.builders.LocacaoBuilder;
 import br.ce.wcaquino.daos.LocacaoDAO;
-import br.ce.wcaquino.daos.LocacaoDAOFake;
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
@@ -32,11 +37,14 @@ import br.ce.wcaquino.exceptions.FilmeSemEstoqueException;
 import br.ce.wcaquino.exceptions.LocadoraException;
 import br.ce.wcaquino.matchers.MatchersProprios;
 import br.ce.wcaquino.utils.DataUtils;
-import buildermaster.BuilderMaster;
 
 public class LocacaoServiceTest {
 
 	private LocacaoService service;
+
+	private LocacaoDAO dao;
+	private SPCService spc;
+	private EmailService email;
 
 	@Rule
 	// Anotacao que permite mudar o comportamento dos testes
@@ -48,9 +56,13 @@ public class LocacaoServiceTest {
 	@Before
 	public void setup() {
 		service = new LocacaoService();
-		// fake object
-		LocacaoDAO dao = new LocacaoDAOFake();
+		// mock
+		dao = Mockito.mock(LocacaoDAO.class);
 		service.setLocacaoDAO(dao);
+		spc = Mockito.mock(SPCService.class);
+		service.setSPCService(spc);
+		email = Mockito.mock(EmailService.class);
+		service.setEmailService(email);
 	}
 
 	@Test
@@ -59,7 +71,7 @@ public class LocacaoServiceTest {
 
 		// cenario - inicializacao das variaveis
 		Usuario usuario = umUsuario().agora();
-		List<Filme> filme = Arrays.asList(FilmeBuilder.umfilme().comValor(5.0).agora());
+		List<Filme> filme = Arrays.asList(FilmeBuilder.umFilme().comValor(5.0).agora());
 
 		// acao - execucao
 		Locacao locacao = service.alugarFilme(usuario, filme);
@@ -85,7 +97,7 @@ public class LocacaoServiceTest {
 	@Test
 	public void naoDeveAlugarFilmeSemUsuario() throws FilmeSemEstoqueException {
 		// cenario
-		List<Filme> filme = Arrays.asList(FilmeBuilder.umfilme().agora());
+		List<Filme> filme = Arrays.asList(FilmeBuilder.umFilme().agora());
 
 		// acao
 		try {
@@ -113,7 +125,7 @@ public class LocacaoServiceTest {
 
 		// cenario - o que preciso
 		Usuario usuario = umUsuario().agora();
-		List<Filme> filmes = Arrays.asList(FilmeBuilder.umfilme().agora());
+		List<Filme> filmes = Arrays.asList(FilmeBuilder.umFilme().agora());
 
 		// acao
 		Locacao retorno = service.alugarFilme(usuario, filmes);
@@ -122,7 +134,48 @@ public class LocacaoServiceTest {
 		assertThat(retorno.getDataRetorno(), caiNumaSegunda());
 	}
 
-	public static void main(String[] args) {
-		new BuilderMaster().gerarCodigoClasse(Locacao.class);
+	@Test
+	public void naoDeveAlugarFilmeParaNegativadoSPC() throws FilmeSemEstoqueException {
+		// cenario
+		Usuario usuario = umUsuario().agora();
+		List<Filme> filmes = Arrays.asList(FilmeBuilder.umFilme().agora());
+
+		when(spc.possuiNegativacao(usuario)).thenReturn(true);
+
+		// acao
+		try {
+			service.alugarFilme(usuario, filmes);
+			// verificacao
+			Assert.fail();
+		} catch (LocadoraException e) {
+			assertThat(e.getMessage(), is("Usuario negativado"));
+		}
+
+		verify(spc).possuiNegativacao(usuario);
+	}
+
+	@Test
+	public void deveEnviarEmailParaLocacoesAtrasadsa() {
+		// cenario
+		Usuario usuario = umUsuario().agora();
+		Usuario usuario2 = umUsuario().comNome("Usuario em dia").agora();
+		Usuario usuario3 = umUsuario().comNome("outro Atrasado").agora();
+
+		List<Locacao> locacoes = Arrays.asList(LocacaoBuilder.umLocacao().atrasado().comUsuario(usuario).agora(),
+				LocacaoBuilder.umLocacao().comUsuario(usuario2).agora(),
+				LocacaoBuilder.umLocacao().atrasado().comUsuario(usuario3).agora(),
+				LocacaoBuilder.umLocacao().atrasado().comUsuario(usuario3).agora());
+
+		when(dao.obterLocacoesPendentes()).thenReturn(locacoes);
+
+		// acao
+		service.notificarAtrasos();
+
+		// verificacao
+		verify(email, Mockito.times(3)).notificarAtraso(Mockito.any(Usuario.class));
+		verify(email).notificarAtraso(usuario);
+		verify(email, Mockito.atLeastOnce()).notificarAtraso(usuario3);
+		verify(email, never()).notificarAtraso(usuario2);
+		verifyNoMoreInteractions(email);
 	}
 }
