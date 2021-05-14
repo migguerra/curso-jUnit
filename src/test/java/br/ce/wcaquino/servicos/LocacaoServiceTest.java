@@ -10,6 +10,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -25,7 +26,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import br.ce.wcaquino.builders.FilmeBuilder;
 import br.ce.wcaquino.builders.LocacaoBuilder;
@@ -40,10 +44,14 @@ import br.ce.wcaquino.utils.DataUtils;
 
 public class LocacaoServiceTest {
 
+	@InjectMocks // classe de teste
 	private LocacaoService service;
 
+	@Mock
 	private LocacaoDAO dao;
+	@Mock
 	private SPCService spc;
+	@Mock
 	private EmailService email;
 
 	@Rule
@@ -55,14 +63,7 @@ public class LocacaoServiceTest {
 
 	@Before
 	public void setup() {
-		service = new LocacaoService();
-		// mock
-		dao = Mockito.mock(LocacaoDAO.class);
-		service.setLocacaoDAO(dao);
-		spc = Mockito.mock(SPCService.class);
-		service.setSPCService(spc);
-		email = Mockito.mock(EmailService.class);
-		service.setEmailService(email);
+		MockitoAnnotations.initMocks(this);
 	}
 
 	@Test
@@ -172,7 +173,7 @@ public class LocacaoServiceTest {
 		service.notificarAtrasos();
 
 		// verificacao
-		verify(email, Mockito.times(3)).notificarAtraso(Mockito.any(Usuario.class));
+		verify(email, times(3)).notificarAtraso(Mockito.any(Usuario.class));
 		verify(email).notificarAtraso(usuario);
 		verify(email, Mockito.atLeastOnce()).notificarAtraso(usuario3);
 		verify(email, never()).notificarAtraso(usuario2);
