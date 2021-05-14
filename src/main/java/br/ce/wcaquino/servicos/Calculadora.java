@@ -23,4 +23,7 @@ public class Calculadora {
 		return num1 * num2;
 	}
 
+	public void imprime() {
+		System.out.println("Passei aqui");
+	}
 }
